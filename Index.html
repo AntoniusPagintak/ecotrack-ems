@@ -1,0 +1,1970 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#047857" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="EcoTrack EMS" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="logo-gpk.png" />
+  <link rel="apple-touch-icon" href="logo-gpk.png" />
+  <title>EcoTrack EMS — Sistem Manajemen & Pemantauan Lingkungan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased">
+
+  <!-- ==================== HALAMAN LOGIN KUSTOM ==================== -->
+  <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-emerald-950 via-teal-900 to-slate-900">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
+      <div class="bg-gradient-to-r from-emerald-800 to-teal-700 px-6 py-6 text-white">
+        <div class="flex items-center gap-3.5">
+          <img src="logo-gpk.png" alt="Logo PT GPK" class="w-16 h-12 rounded-xl bg-white p-1.5 object-contain shrink-0 shadow" />
+          <div>
+            <h1 class="text-xl font-bold tracking-tight">EcoTrack EMS</h1>
+            <p class="text-xs text-emerald-100">Environment Management & Monitoring System</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div id="loginAlert" class="hidden p-3 rounded-lg text-xs font-medium"></div>
+
+        <form id="loginForm" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Username Kustom</label>
+            <input id="loginUsername" type="text" required placeholder="contoh: admin.env"
+              class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Password Kustom</label>
+            <div class="relative">
+              <input id="loginPassword" type="password" required placeholder="Masukkan password"
+                class="w-full px-3.5 py-2.5 pr-10 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600" />
+              <button type="button" id="togglePassBtn"
+                class="absolute inset-y-0 right-0 px-3 text-xs text-slate-500 hover:text-slate-800">Lihat</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Web App URL Google Sheets (Opsional saat Login)</label>
+            <input id="loginScriptUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec"
+              class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-600" />
+          </div>
+
+          <button type="submit"
+            class="w-full py-2.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-sm transition shadow">
+            Masuk ke Aplikasi
+          </button>
+        </form>
+
+        <div class="pt-3 border-t border-slate-200 flex items-center justify-between text-xs">
+          <button type="button" id="openCustomAccountModal" class="text-emerald-700 font-semibold hover:underline">
+            + Kelola Akun / Password Kustom
+          </button>
+          <span class="text-slate-400">v1.6.2 • PT GPK</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Kelola Akun & Password Kustom -->
+  <div id="customAccountModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+      <div class="flex items-center justify-between border-b pb-3">
+        <h2 class="text-base font-bold text-slate-800">Tambah / Ubah Akun & Password Kustom</h2>
+        <button id="closeCustomAccountModal" class="text-slate-400 hover:text-slate-700 text-lg">&times;</button>
+      </div>
+      <p class="text-xs text-slate-500">
+        Akun kustom tersimpan di browser perangkat ini dan dapat disinkronkan ke sheet <strong>Users</strong> pada Google Apps Script jika Web App URL sudah diatur.
+      </p>
+      <form id="customAccountForm" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Lengkap</label>
+          <input id="accNama" type="text" required placeholder="Contoh: Budi Santoso"
+            class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Username</label>
+          <input id="accUsername" type="text" required placeholder="Contoh: budi.env"
+            class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Password Baru</label>
+          <input id="accPassword" type="text" required placeholder="Buat password kustom"
+            class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Peran (Role)</label>
+          <select id="accRole" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm">
+            <option value="Admin">Admin</option>
+            <option value="Supervisor">Supervisor</option>
+            <option value="Field Officer">Field Officer</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" id="cancelCustomAccountBtn" class="px-4 py-2 rounded-lg border text-xs font-semibold">Batal</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-emerald-700 text-white text-xs font-semibold">Simpan Akun</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== APLIKASI UTAMA ECOTRACK EMS ==================== -->
+  <div id="appScreen" class="hidden min-h-screen flex flex-col lg:flex-row">
+    <!-- Sidebar -->
+    <aside class="w-full lg:w-64 bg-slate-900 text-slate-200 flex flex-col justify-between shrink-0">
+      <div>
+        <div class="p-5 border-b border-slate-800 flex items-center gap-3">
+          <img src="logo-gpk.png" alt="Logo PT GPK" class="w-12 h-10 rounded-lg bg-white p-1 object-contain shrink-0" />
+          <div>
+            <div class="text-emerald-400 font-bold text-base leading-tight">EcoTrack EMS</div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Sistem Lingkungan Terpadu</p>
+          </div>
+        </div>
+
+        <nav class="p-3 space-y-1 text-sm" id="navMenu">
+          <button data-tab="dashboard" class="nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg bg-emerald-600 text-white font-medium">
+            <span>📊</span><span>Dashboard</span>
+          </button>
+          <button data-tab="water" class="nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg hover:bg-slate-800 transition">
+            <span>💧</span><span>Kualitas Air & Pond</span>
+          </button>
+          <button data-tab="chemical" class="nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg hover:bg-slate-800 transition">
+            <span>🧪</span><span>Inventory Chemical Pond</span>
+          </button>
+          <button data-tab="air" class="nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg hover:bg-slate-800 transition">
+            <span>🌬️</span><span>Udara & Kebisingan</span>
+          </button>
+          <button data-tab="b3" class="nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg hover:bg-slate-800 transition">
+            <span>☣️</span><span>Inventory Limbah B3</span>
+          </button>
+          <button data-tab="energy" class="nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg hover:bg-slate-800 transition">
+            <span>⚡</span><span>Energi & Fuel (LV/Genset)</span>
+          </button>
+          <button data-tab="compliance" class="nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg hover:bg-slate-800 transition">
+            <span>📋</span><span>Kepatuhan Regulasi</span>
+          </button>
+          <button data-tab="incident" class="nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg hover:bg-slate-800 transition">
+            <span>⚠️</span><span>Insiden & CAR</span>
+          </button>
+          <button data-tab="sheets" class="nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg hover:bg-slate-800 transition">
+            <span>🔗</span><span>Google Sheets & Akun</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="p-4 border-t border-slate-800 space-y-3">
+        <div class="bg-slate-800/80 rounded-xl p-3 text-xs">
+          <div class="font-semibold text-white truncate" id="currentUserName">-</div>
+          <div class="text-emerald-400 text-[11px]" id="currentUserRole">-</div>
+          <div class="text-slate-400 text-[11px] mt-1" id="syncStatusBadge">Mode: Lokal / Offline</div>
+        </div>
+        <div class="flex gap-2">
+          <button id="syncNowBtn" class="flex-1 py-2 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium">
+            🔄 Sync
+          </button>
+          <button id="logoutBtn" class="flex-1 py-2 px-2.5 rounded-lg bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-medium">
+            Keluar
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Konten Utama -->
+    <main class="flex-1 p-4 md:p-6 overflow-y-auto scrollbar-thin space-y-6">
+      <!-- Banner Peringatan Dini -->
+      <div id="alertBanner" class="hidden rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 text-sm shadow-sm">
+        <div class="font-bold mb-1">⚠️ Peringatan Dini Baku Mutu / Stok / Masa Simpan TPS / Fuel</div>
+        <ul id="alertList" class="list-disc list-inside text-xs space-y-0.5"></ul>
+      </div>
+
+      <!-- TAB 1: DASHBOARD EKSEKUTIF -->
+      <section id="tab-dashboard" class="tab-content space-y-6">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3.5">
+            <img src="logo-gpk.png" alt="PT GPK" class="w-14 h-11 rounded-xl bg-slate-50 border border-slate-200 p-1.5 object-contain shrink-0" />
+            <div>
+              <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">PT Graha Panca Karsa • HSEC Environmental</div>
+              <h2 class="text-xl font-bold text-slate-900">Dashboard Pemantauan Lingkungan, Inventory & Energi</h2>
+              <p class="text-xs text-slate-500">Ringkasan Settling Pond 01–04, stok chemical pond, sisa stok Limbah B3 TPS, dan fuel LV & Genset</p>
+            </div>
+          </div>
+          <button id="exportCsvBtn" class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-sm transition">
+            📥 Ekspor Semua Data (CSV)
+          </button>
+        </div>
+
+        <!-- Ringkasan KPI -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4">
+          <div class="bg-white rounded-xl p-4 border border-slate-200 border-l-4 border-l-sky-600 shadow-sm">
+            <div class="text-xs font-medium text-slate-500">Log Kualitas Air</div>
+            <div id="kpiWaterCount" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+            <div id="kpiWaterAlert" class="text-xs text-emerald-600 mt-1">Semua memenuhi baku mutu</div>
+          </div>
+          <div class="bg-white rounded-xl p-4 border border-slate-200 border-l-4 border-l-cyan-600 shadow-sm">
+            <div class="text-xs font-medium text-slate-500">Item Chemical Pond</div>
+            <div id="kpiChemCount" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+            <div id="kpiChemAlert" class="text-xs text-emerald-600 mt-1">Stok chemical aman</div>
+          </div>
+          <div class="bg-white rounded-xl p-4 border border-slate-200 border-l-4 border-l-teal-600 shadow-sm">
+            <div class="text-xs font-medium text-slate-500">Log Udara & Kebisingan</div>
+            <div id="kpiAirCount" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+            <div id="kpiAirAlert" class="text-xs text-emerald-600 mt-1">Parameter terkendali</div>
+          </div>
+          <div class="bg-white rounded-xl p-4 border border-slate-200 border-l-4 border-l-amber-500 shadow-sm">
+            <div class="text-xs font-medium text-slate-500">Sisa Stok Limbah B3 (Ton)</div>
+            <div id="kpiB3Ton" class="text-2xl font-bold text-slate-900 mt-1">0.00</div>
+            <div id="kpiB3Alert" class="text-xs text-emerald-600 mt-1">Masa simpan aman</div>
+          </div>
+          <div class="bg-white rounded-xl p-4 border border-slate-200 border-l-4 border-l-indigo-600 shadow-sm">
+            <div class="text-xs font-medium text-slate-500">Total Fuel LV & Genset (L)</div>
+            <div id="kpiFuelLiter" class="text-2xl font-bold text-slate-900 mt-1">0.0</div>
+            <div id="kpiFuelAlert" class="text-xs text-emerald-600 mt-1">LV Triton ≥ 8 km/L wajar</div>
+          </div>
+          <div class="bg-white rounded-xl p-4 border border-slate-200 border-l-4 border-l-rose-500 shadow-sm">
+            <div class="text-xs font-medium text-slate-500">Insiden / Temuan Terbuka</div>
+            <div id="kpiIncidentOpen" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+            <div id="kpiComplianceInfo" class="text-xs text-slate-500 mt-1">Kepatuhan dipantau</div>
+          </div>
+        </div>
+
+        <!-- Blok 1: 4 Grafik Settling Pond Terpisah -->
+        <div class="space-y-3">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">💧 Tren TSS (mg/L) & pH per Settling Pond (01 – 04)</h3>
+            <p class="text-xs text-slate-500">Baku mutu: pH 6.0–9.0 dan TSS ≤ 200 mg/L • Dipisahkan per area kolam pengendapan</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-sm font-bold text-slate-800">Settling Pond 01</h4>
+                <span id="spMeta-1" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">0 data</span>
+              </div>
+              <div class="relative h-60 w-full">
+                <canvas id="pondChart1"></canvas>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-sm font-bold text-slate-800">Settling Pond 02</h4>
+                <span id="spMeta-2" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">0 data</span>
+              </div>
+              <div class="relative h-60 w-full">
+                <canvas id="pondChart2"></canvas>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-sm font-bold text-slate-800">Settling Pond 03</h4>
+                <span id="spMeta-3" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">0 data</span>
+              </div>
+              <div class="relative h-60 w-full">
+                <canvas id="pondChart3"></canvas>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-sm font-bold text-slate-800">Settling Pond 04</h4>
+                <span id="spMeta-4" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">0 data</span>
+              </div>
+              <div class="relative h-60 w-full">
+                <canvas id="pondChart4"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Blok 2: Grafik Sisa Stok Limbah B3, Stok Chemical Pond & Fuel Consumption -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+            <div class="mb-2">
+              <h3 class="text-sm font-bold text-slate-800">☣️ Sisa Stok Limbah B3 di TPS (Ton)</h3>
+              <p class="text-[11px] text-slate-500">Saldo aktual (Masuk − Keluar) per kode & jenis limbah</p>
+            </div>
+            <div class="relative h-64 w-full">
+              <canvas id="b3Chart"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+            <div class="mb-2">
+              <h3 class="text-sm font-bold text-slate-800">🧪 Sisa Stok Chemical Treatment Pond</h3>
+              <p class="text-[11px] text-slate-500">Saldo stok chemical aktif untuk treatment Settling Pond</p>
+            </div>
+            <div class="relative h-64 w-full">
+              <canvas id="chemChart"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+            <div class="mb-2">
+              <h3 class="text-sm font-bold text-slate-800">⚡ Total Fuel: Light Vehicle vs Genset (L)</h3>
+              <p class="text-[11px] text-slate-500">Perbandingan total pemakaian solar unit LV & Genset</p>
+            </div>
+            <div class="relative h-64 w-full">
+              <canvas id="energyChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: KUALITAS AIR -->
+      <section id="tab-water" class="tab-content hidden space-y-5">
+        <h2 class="text-lg font-bold text-slate-900">Kualitas Air & Settling Pond 01–04 (Baku Mutu: pH 6.0–9.0, TSS ≤ 200 mg/L)</h2>
+        <form id="waterForm" class="bg-white rounded-xl p-4 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <input type="date" name="tanggal" required class="px-3 py-2 border rounded-lg text-sm" />
+          <select name="titikPantau" required class="px-3 py-2 border rounded-lg text-sm">
+            <option value="">Pilih Settling Pond...</option>
+            <option value="Settling Pond 01">Settling Pond 01</option>
+            <option value="Settling Pond 02">Settling Pond 02</option>
+            <option value="Settling Pond 03">Settling Pond 03</option>
+            <option value="Settling Pond 04">Settling Pond 04</option>
+          </select>
+          <input type="number" step="0.01" name="ph" required placeholder="pH (6-9)" class="px-3 py-2 border rounded-lg text-sm" />
+          <input type="number" step="0.1" name="tss" required placeholder="TSS (mg/L)" class="px-3 py-2 border rounded-lg text-sm" />
+          <input type="number" step="0.1" name="debit" placeholder="Debit (m³/jam)" class="px-3 py-2 border rounded-lg text-sm" />
+          <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm font-semibold px-4 py-2">Simpan</button>
+          <input type="text" name="catatan" placeholder="Catatan kondisi cuaca / operasional" class="sm:col-span-2 lg:col-span-6 px-3 py-2 border rounded-lg text-sm" />
+        </form>
+        <div class="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-b text-slate-600">
+              <tr><th class="p-3">Tanggal</th><th class="p-3">Titik Pantau</th><th class="p-3">pH</th><th class="p-3">TSS</th><th class="p-3">Debit</th><th class="p-3">Status</th><th class="p-3">Catatan</th></tr>
+            </thead>
+            <tbody id="waterTableBody" class="divide-y"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 3: INVENTORY CHEMICAL TREATMENT SETTLING POND -->
+      <section id="tab-chemical" class="tab-content hidden space-y-5">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Inventory Chemical Water Treatment (Settling Pond 01–04)</h2>
+          <p class="text-xs text-slate-500">
+            Kelola stok masuk dan pemakaian bahan kimia treatment air (<strong>CL-25, LM50c Plus, Rolfloc 1395, Rolfloc N, Kapur Tohor (CaO), dan Tawas</strong>) beserta sisa stok gudang secara otomatis.
+          </p>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 border border-slate-200 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-800">📦 Ringkasan Sisa Stok Chemical Gudang</h3>
+            <span class="text-[11px] text-slate-500">Otomatis dihitung dari Total Masuk − Total Pemakaian</span>
+          </div>
+          <div id="chemStockCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+        </div>
+
+        <form id="chemicalForm" class="bg-white rounded-xl p-4 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <input type="date" name="tanggal" required class="px-3 py-2 border rounded-lg text-sm" />
+          <select id="chemTxType" name="jenisTransaksi" class="px-3 py-2 border rounded-lg text-sm font-semibold">
+            <option value="Masuk">Stok Masuk (+)</option>
+            <option value="Pemakaian">Pemakaian Pond (-)</option>
+          </select>
+          <select name="namaChemical" required class="px-3 py-2 border rounded-lg text-sm">
+            <option value="">Pilih Jenis Chemical...</option>
+            <option value="CL-25">CL-25</option>
+            <option value="LM50c Plus">LM50c Plus</option>
+            <option value="Rolfloc 1395">Rolfloc 1395</option>
+            <option value="Rolfloc N">Rolfloc N</option>
+            <option value="Kapur Tohor (CaO)">Kapur Tohor (CaO)</option>
+            <option value="Tawas">Tawas</option>
+          </select>
+          <input type="number" step="0.01" min="0.01" name="jumlah" required placeholder="Jumlah" class="px-3 py-2 border rounded-lg text-sm" />
+          <select name="satuan" class="px-3 py-2 border rounded-lg text-sm">
+            <option value="kg">kg</option>
+            <option value="Liter">Liter</option>
+            <option value="Sak">Sak</option>
+            <option value="Drum">Drum</option>
+            <option value="Jerigen">Jerigen</option>
+          </select>
+          <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm font-semibold px-4 py-2">Simpan</button>
+
+          <select id="chemLokasiInput" name="lokasiPenggunaan" class="sm:col-span-2 px-3 py-2 border rounded-lg text-sm">
+            <option value="Gudang Chemical HSEC">Gudang Chemical HSEC (Penerimaan)</option>
+            <option value="Settling Pond 01">Settling Pond 01</option>
+            <option value="Settling Pond 02">Settling Pond 02</option>
+            <option value="Settling Pond 03">Settling Pond 03</option>
+            <option value="Settling Pond 04">Settling Pond 04</option>
+            <option value="Semua Pond (01-04)">Semua Pond (01-04)</option>
+          </select>
+          <input type="number" step="1" min="0" name="stokMinimum" placeholder="Batas Stok Min. (opsional, default 50)" class="sm:col-span-2 px-3 py-2 border rounded-lg text-sm" />
+          <input type="text" name="keterangan" placeholder="Keterangan (Supplier / Dosis / No. SJ)" class="sm:col-span-2 px-3 py-2 border rounded-lg text-sm" />
+        </form>
+
+        <div class="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-b text-slate-600">
+              <tr>
+                <th class="p-3">Tanggal</th>
+                <th class="p-3">Transaksi</th>
+                <th class="p-3">Nama Chemical</th>
+                <th class="p-3">Jumlah</th>
+                <th class="p-3">Lokasi / Pond</th>
+                <th class="p-3">Keterangan</th>
+              </tr>
+            </thead>
+            <tbody id="chemicalTableBody" class="divide-y"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 4: UDARA & KEBISINGAN -->
+      <section id="tab-air" class="tab-content hidden space-y-5">
+        <h2 class="text-lg font-bold text-slate-900">Udara Ambien, Emisi & Kebisingan (Baku Mutu: Kebisingan ≤ 70 dBA, PM2.5 ≤ 55 µg/m³)</h2>
+        <form id="airForm" class="bg-white rounded-xl p-4 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <input type="date" name="tanggal" required class="px-3 py-2 border rounded-lg text-sm" />
+          <input type="text" name="lokasi" required placeholder="Lokasi / Area" class="px-3 py-2 border rounded-lg text-sm" />
+          <input type="number" step="0.1" name="pm25" required placeholder="PM2.5 (µg/m³)" class="px-3 py-2 border rounded-lg text-sm" />
+          <input type="number" step="0.1" name="pm10" required placeholder="PM10 (µg/m³)" class="px-3 py-2 border rounded-lg text-sm" />
+          <input type="number" step="0.1" name="kebisingan" required placeholder="Kebisingan (dBA)" class="px-3 py-2 border rounded-lg text-sm" />
+          <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm font-semibold px-4 py-2">Simpan</button>
+          <input type="text" name="catatan" placeholder="Catatan sumber emisi / angin" class="sm:col-span-2 lg:col-span-6 px-3 py-2 border rounded-lg text-sm" />
+        </form>
+        <div class="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-b text-slate-600">
+              <tr><th class="p-3">Tanggal</th><th class="p-3">Lokasi</th><th class="p-3">PM2.5</th><th class="p-3">PM10</th><th class="p-3">Kebisingan</th><th class="p-3">Status</th><th class="p-3">Catatan</th></tr>
+            </thead>
+            <tbody id="airTableBody" class="divide-y"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 5: INVENTORY LIMBAH B3 (MASUK, KELUAR & SISA STOK TPS) -->
+      <section id="tab-b3" class="tab-content hidden space-y-5">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Inventory Limbah B3 TPS (Limbah Masuk, Keluar & Sisa Stok)</h2>
+          <p class="text-xs text-slate-500">
+            Catat transaksi <strong>Masuk (ke TPS)</strong> dan <strong>Keluar (diangkut pihak ke-3 berizin)</strong>. Sistem otomatis menghitung sisa stok per kode & jenis limbah di TPS.
+          </p>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 border border-slate-200 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-800">📦 Neraca & Sisa Stok Limbah B3 di TPS</h3>
+            <span class="text-[11px] text-slate-500">Sisa Stok = Total Masuk − Total Keluar (Ton)</span>
+          </div>
+          <div id="b3StockCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+        </div>
+
+        <form id="b3Form" class="bg-white rounded-xl p-4 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <input type="date" name="tanggalMasuk" required class="px-3 py-2 border rounded-lg text-sm" />
+          <select id="b3TxType" name="jenisTransaksi" class="px-3 py-2 border rounded-lg text-sm font-semibold">
+            <option value="Masuk">Limbah Masuk (+)</option>
+            <option value="Keluar">Limbah Keluar (-)</option>
+          </select>
+          <select id="b3KodeSelect" name="kodeLimbah" required class="px-3 py-2 border rounded-lg text-sm font-mono font-semibold">
+            <option value="">Pilih Kode B3...</option>
+            <option value="B105d">B105d</option>
+            <option value="A102d">A102d</option>
+            <option value="A108d">A108d</option>
+            <option value="A111d">A111d</option>
+            <option value="A337-1">A337-1</option>
+            <option value="B104d">B104d</option>
+            <option value="B107d">B107d</option>
+            <option value="B110d">B110d</option>
+            <option value="B109d">B109d</option>
+          </select>
+          <input id="b3JenisInput" type="text" name="jenisLimbah" required placeholder="Jenis Limbah (mis. Oli Bekas)" class="px-3 py-2 border rounded-lg text-sm" />
+          <input type="number" step="0.01" min="0.01" name="jumlah" required placeholder="Jumlah (Ton)" class="px-3 py-2 border rounded-lg text-sm" />
+          <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm font-semibold px-4 py-2">Simpan</button>
+
+          <select id="b3BatasHariInput" name="batasHari" class="sm:col-span-2 px-3 py-2 border rounded-lg text-sm">
+            <option value="90">Batas Simpan 90 Hari</option>
+            <option value="180">Batas Simpan 180 Hari</option>
+            <option value="365">Batas Simpan 365 Hari</option>
+          </select>
+          <input id="b3TujuanInput" type="text" name="tujuan" placeholder="Sumber Penghasil (jika Masuk) / Pengangkut Pihak Ke-3 & Manifest (jika Keluar)"
+            class="sm:col-span-2 lg:col-span-4 px-3 py-2 border rounded-lg text-sm" />
+        </form>
+
+        <div class="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-b text-slate-600">
+              <tr>
+                <th class="p-3">Tanggal</th>
+                <th class="p-3">Transaksi</th>
+                <th class="p-3">Kode</th>
+                <th class="p-3">Jenis Limbah</th>
+                <th class="p-3">Jumlah (Ton)</th>
+                <th class="p-3">Sisa Hari</th>
+                <th class="p-3">Status TPS</th>
+                <th class="p-3">Sumber / Tujuan Pihak Ke-3</th>
+              </tr>
+            </thead>
+            <tbody id="b3TableBody" class="divide-y"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 6: ENERGI & FUEL (LV TRITON & GENSET) -->
+      <section id="tab-energy" class="tab-content hidden space-y-5">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Penggunaan Energi & Fuel Consumption (LV Mitsubishi Triton & Genset)</h2>
+          <p class="text-xs text-slate-500">
+            Standar LV Triton: Klaim pabrik <strong>10 km/L</strong> • Batas wajar tambang (unit lama/medan berat) <strong>≥ 8,0 km/L</strong> (&lt; 8,0 km/L = Boros/Anomali) • Genset dihitung dalam <strong>Liter/Jam</strong>.
+          </p>
+        </div>
+
+        <form id="energyForm" class="bg-white rounded-xl p-4 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <input type="date" name="tanggal" required class="px-3 py-2 border rounded-lg text-sm" />
+          <select id="energyUnitType" name="tipeUnit" class="px-3 py-2 border rounded-lg text-sm">
+            <option value="LV Triton">LV (Mitsubishi Triton)</option>
+            <option value="Genset">Genset</option>
+          </select>
+          <input type="text" name="namaUnit" required placeholder="ID / Nama Unit (mis. LV-Triton-01 / Genset-60kVA)" class="px-3 py-2 border rounded-lg text-sm" />
+          <input id="meterAwalInput" type="number" step="0.1" name="meterAwal" required placeholder="Odometer / HM Awal" class="px-3 py-2 border rounded-lg text-sm" />
+          <input id="meterAkhirInput" type="number" step="0.1" name="meterAkhir" required placeholder="Odometer / HM Akhir" class="px-3 py-2 border rounded-lg text-sm" />
+          <input type="number" step="0.01" name="fuelLiter" required placeholder="Fuel / Solar (Liter)" class="px-3 py-2 border rounded-lg text-sm" />
+
+          <input id="batasGensetInput" type="number" step="0.1" name="batasGenset" placeholder="Batas Maks Genset (L/jam, default 10)"
+            class="hidden px-3 py-2 border rounded-lg text-sm" />
+          <input id="catatanEnergyInput" type="text" name="catatan" placeholder="Catatan rute tambang / beban genset / kondisi unit"
+            class="sm:col-span-2 lg:col-span-5 px-3 py-2 border rounded-lg text-sm" />
+          <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm font-semibold px-4 py-2">Simpan</button>
+        </form>
+
+        <div class="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-b text-slate-600">
+              <tr>
+                <th class="p-3">Tanggal</th>
+                <th class="p-3">Tipe</th>
+                <th class="p-3">Unit</th>
+                <th class="p-3">Selisih (km / jam)</th>
+                <th class="p-3">Fuel (L)</th>
+                <th class="p-3">Rasio / Konsumsi</th>
+                <th class="p-3">Status</th>
+                <th class="p-3">Catatan</th>
+              </tr>
+            </thead>
+            <tbody id="energyTableBody" class="divide-y"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 7: KEPATUHAN REGULASI -->
+      <section id="tab-compliance" class="tab-content hidden space-y-5">
+        <h2 class="text-lg font-bold text-slate-900">Kepatuhan Regulasi, Pelaporan & Kalibrasi</h2>
+        <form id="complianceForm" class="bg-white rounded-xl p-4 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <input type="text" name="namaKewajiban" required placeholder="Nama Kewajiban (mis. Laporan RKL-RPL)" class="px-3 py-2 border rounded-lg text-sm" />
+          <input type="text" name="kategori" required placeholder="Kategori (RKL-RPL / SIMPEL / Kalibrasi)" class="px-3 py-2 border rounded-lg text-sm" />
+          <input type="date" name="jatuhTempo" required class="px-3 py-2 border rounded-lg text-sm" />
+          <select name="status" class="px-3 py-2 border rounded-lg text-sm">
+            <option value="Terpenuhi">Terpenuhi</option>
+            <option value="Dalam Proses">Dalam Proses</option>
+            <option value="Terlambat">Terlambat</option>
+          </select>
+          <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm font-semibold px-4 py-2">Simpan</button>
+          <input type="text" name="pic" placeholder="Penanggung Jawab" class="sm:col-span-2 px-3 py-2 border rounded-lg text-sm" />
+          <input type="text" name="catatan" placeholder="Catatan / Nomor Dokumen" class="sm:col-span-2 lg:col-span-3 px-3 py-2 border rounded-lg text-sm" />
+        </form>
+        <div class="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-b text-slate-600">
+              <tr><th class="p-3">Kewajiban</th><th class="p-3">Kategori</th><th class="p-3">Jatuh Tempo</th><th class="p-3">Status</th><th class="p-3">PIC</th><th class="p-3">Catatan</th></tr>
+            </thead>
+            <tbody id="complianceTableBody" class="divide-y"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 8: INSIDEN & CAR -->
+      <section id="tab-incident" class="tab-content hidden space-y-5">
+        <h2 class="text-lg font-bold text-slate-900">Log Insiden, Inspeksi Lapangan & Tindakan CAR</h2>
+        <form id="incidentForm" class="bg-white rounded-xl p-4 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <input type="date" name="tanggal" required class="px-3 py-2 border rounded-lg text-sm" />
+          <input type="text" name="lokasi" required placeholder="Lokasi Kejadian / Temuan" class="px-3 py-2 border rounded-lg text-sm" />
+          <input type="text" name="jenisTemuan" required placeholder="Jenis Temuan (mis. Tumpahan / Tanggul)" class="px-3 py-2 border rounded-lg text-sm" />
+          <select name="risiko" class="px-3 py-2 border rounded-lg text-sm">
+            <option value="Rendah">Risiko Rendah</option>
+            <option value="Sedang">Risiko Sedang</option>
+            <option value="Tinggi">Risiko Tinggi</option>
+          </select>
+          <select name="status" class="px-3 py-2 border rounded-lg text-sm">
+            <option value="Terbuka">Terbuka</option>
+            <option value="Dalam Penanganan">Dalam Penanganan</option>
+            <option value="Selesai">Selesai</option>
+          </select>
+          <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm font-semibold px-4 py-2">Simpan</button>
+          <input type="text" name="car" required placeholder="Tindakan Perbaikan & Pencegahan (CAR)" class="sm:col-span-2 lg:col-span-4 px-3 py-2 border rounded-lg text-sm" />
+          <input type="text" name="pic" placeholder="PIC Penyelesaian" class="sm:col-span-2 px-3 py-2 border rounded-lg text-sm" />
+        </form>
+        <div class="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-b text-slate-600">
+              <tr><th class="p-3">Tanggal</th><th class="p-3">Lokasi</th><th class="p-3">Temuan</th><th class="p-3">Risiko</th><th class="p-3">CAR</th><th class="p-3">Status</th><th class="p-3">PIC</th></tr>
+            </thead>
+            <tbody id="incidentTableBody" class="divide-y"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 9: GOOGLE SHEETS & MANAJEMEN AKUN KUSTOM -->
+      <section id="tab-sheets" class="tab-content hidden space-y-6">
+        <div class="bg-white rounded-xl p-5 border border-slate-200 space-y-4">
+          <h2 class="text-lg font-bold text-slate-900">Konfigurasi Web App Google Sheets</h2>
+          <p class="text-xs text-slate-500">
+            Masukkan URL hasil *Deploy* Google Apps Script (berakhiran <code class="bg-slate-100 px-1 py-0.5 rounded">/exec</code>). Setiap input data akan otomatis terkirim bersama kredensial login aktif ke Google Sheets.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <input id="settingsScriptUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec"
+              class="flex-1 px-3.5 py-2 border rounded-lg text-sm" />
+            <button id="saveScriptUrlBtn" class="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold">
+              Simpan URL & Tarik Data
+            </button>
+          </div>
+          <div id="sheetsFeedback" class="text-xs text-slate-600"></div>
+        </div>
+
+        <div class="bg-white rounded-xl p-5 border border-slate-200 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Daftar Akun & Password Kustom</h3>
+              <p class="text-xs text-slate-500">Kelola akun login pengguna aplikasi.</p>
+            </div>
+            <button id="openAccountModalFromApp" class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold">
+              + Tambah Akun Kustom
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 border-b text-slate-600">
+                <tr><th class="p-3">Username</th><th class="p-3">Nama Lengkap</th><th class="p-3">Role</th><th class="p-3">Password</th></tr>
+              </thead>
+              <tbody id="accountsTableBody" class="divide-y"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((err) => {
+          console.warn('Registrasi Service Worker gagal:', err);
+        });
+      });
+    }
+
+    const STORAGE_KEYS = {
+      session: 'ecotrack_session_v1',
+      users: 'ecotrack_custom_users_v1',
+      scriptUrl: 'ecotrack_script_url_v1',
+      data: 'ecotrack_data_v1'
+    };
+
+    const DEFAULT_USERS = [
+      { username: 'admin.env', password: 'EcoTrack#2026', namaLengkap: 'Administrator Lingkungan', role: 'Admin' },
+      { username: 'lapangan.env', password: 'Lapangan123', namaLengkap: 'Petugas Lapangan HSEC', role: 'Field Officer' }
+    ];
+
+    const B3_CODE_SUGGESTIONS = {
+      'B105d': 'Minyak Pelumas Bekas',
+      'A102d': 'Aki / Baterai Bekas',
+      'A108d': 'Limbah Terkontaminasi B3',
+      'A111d': 'Kemasan Bekas B3',
+      'A337-1': 'Limbah Klinis / Medis',
+      'B104d': 'Filter Oli Bekas',
+      'B107d': 'Majun Terkontaminasi / Kain Majun B3',
+      'B110d': 'Sludge / Residu Oil Trap',
+      'B109d': 'Lampu TL / Elektronik Bekas'
+    };
+
+    const SAMPLE_DATA = {
+      water: [
+        { id: 'W-1', tanggal: '2026-11-18', titikPantau: 'Settling Pond 01', ph: 7.4, tss: 112, debit: 85, status: 'Normal', catatan: 'Kondisi cerah' },
+        { id: 'W-2', tanggal: '2026-11-19', titikPantau: 'Settling Pond 02', ph: 7.1, tss: 215, debit: 110, status: 'Melewati Baku Mutu', catatan: 'Hujan deras pagi hari' },
+        { id: 'W-3', tanggal: '2026-11-19', titikPantau: 'Settling Pond 03', ph: 7.5, tss: 95, debit: 72, status: 'Normal', catatan: 'Operasional normal' },
+        { id: 'W-4', tanggal: '2026-11-20', titikPantau: 'Settling Pond 04', ph: 7.2, tss: 130, debit: 90, status: 'Normal', catatan: 'Terkendali' }
+      ],
+      chemical: [
+        { id: 'CH-1', tanggal: '2026-11-15', jenisTransaksi: 'Masuk', namaChemical: 'CL-25', jumlah: 300, satuan: 'Liter', lokasiPenggunaan: 'Gudang Chemical HSEC', stokMinimum: 60, keterangan: 'Stok awal gudang' },
+        { id: 'CH-2', tanggal: '2026-11-15', jenisTransaksi: 'Masuk', namaChemical: 'LM50c Plus', jumlah: 250, satuan: 'Liter', lokasiPenggunaan: 'Gudang Chemical HSEC', stokMinimum: 50, keterangan: 'Stok awal gudang' },
+        { id: 'CH-3', tanggal: '2026-11-15', jenisTransaksi: 'Masuk', namaChemical: 'Rolfloc 1395', jumlah: 400, satuan: 'kg', lokasiPenggunaan: 'Gudang Chemical HSEC', stokMinimum: 80, keterangan: 'Stok awal gudang' },
+        { id: 'CH-4', tanggal: '2026-11-15', jenisTransaksi: 'Masuk', namaChemical: 'Rolfloc N', jumlah: 350, satuan: 'kg', lokasiPenggunaan: 'Gudang Chemical HSEC', stokMinimum: 70, keterangan: 'Stok awal gudang' },
+        { id: 'CH-5', tanggal: '2026-11-15', jenisTransaksi: 'Masuk', namaChemical: 'Kapur Tohor (CaO)', jumlah: 500, satuan: 'kg', lokasiPenggunaan: 'Gudang Chemical HSEC', stokMinimum: 100, keterangan: 'Stok awal gudang' },
+        { id: 'CH-6', tanggal: '2026-11-15', jenisTransaksi: 'Masuk', namaChemical: 'Tawas', jumlah: 600, satuan: 'kg', lokasiPenggunaan: 'Gudang Chemical HSEC', stokMinimum: 120, keterangan: 'Stok awal gudang' }
+      ],
+      air: [
+        { id: 'A-1', tanggal: '2026-11-19', lokasi: 'Hauling Road KM 4', pm25: 34, pm10: 78, kebisingan: 66.5, status: 'Normal', catatan: 'Penyiraman rutin aktif' }
+      ],
+      b3: [
+        { id: 'B-1', tanggalMasuk: '2026-11-01', jenisTransaksi: 'Masuk', kodeLimbah: 'B105d', jenisLimbah: 'Minyak Pelumas Bekas', jumlah: 1.41, batasHari: 90, sisaHari: 65, status: 'Aman', tujuan: 'Workshop Alat Berat' },
+        { id: 'B-2', tanggalMasuk: '2026-11-10', jenisTransaksi: 'Keluar', kodeLimbah: 'B105d', jenisLimbah: 'Minyak Pelumas Bekas', jumlah: 0.50, batasHari: 90, sisaHari: 0, status: 'Diangkut Pihak Ke-3', tujuan: 'PT Pengolah B3 Berizin' }
+      ],
+      energy: [
+        { id: 'E-1', tanggal: '2026-11-20', tipeUnit: 'LV Triton', namaUnit: 'LV-Triton-01', meterAwal: 45200, meterAkhir: 45296, fuelLiter: 11.2, selisih: 96, rasioDisplay: '8.57 km/L', status: 'Wajar Tambang (≥8 km/L)', catatan: 'Operasional pit & hauling, unit lama' },
+        { id: 'E-2', tanggal: '2026-11-20', tipeUnit: 'Genset', namaUnit: 'Genset-Office-60kVA', meterAwal: 1210, meterAkhir: 1218, fuelLiter: 68, selisih: 8, rasioDisplay: '8.50 L/jam', status: 'Normal', catatan: 'Batas wajar 10 L/jam' }
+      ],
+      compliance: [
+        { id: 'C-1', namaKewajiban: 'Pelaporan RKL-RPL Semester II', kategori: 'RKL-RPL', jatuhTempo: '2027-01-15', status: 'Dalam Proses', pic: 'Tim HSEC', catatan: 'Kompilasi data lab' }
+      ],
+      incident: [
+        { id: 'I-1', tanggal: '2026-11-17', lokasi: 'Workshop Alat Berat', jenisTemuan: 'Ceceran oli ringan di area servis', risiko: 'Sedang', car: 'Pasang oil absorbent pad & perketat SOP transfer oli', status: 'Dalam Penanganan', pic: 'Supervisor Workshop' }
+      ]
+    };
+
+    function cloneSampleData() {
+      return JSON.parse(JSON.stringify(SAMPLE_DATA));
+    }
+
+    function formatShortDate(val) {
+      if (!val) return '-';
+      const s = String(val).trim();
+      return s.length >= 10 ? s.slice(0, 10) : s;
+    }
+
+    let appData = loadData();
+    let currentSession = null;
+    const pondChartInstances = { 1: null, 2: null, 3: null, 4: null };
+    let b3ChartInstance = null;
+    let chemChartInstance = null;
+    let energyChartInstance = null;
+
+    function getUsers() {
+      const raw = localStorage.getItem(STORAGE_KEYS.users);
+      if (!raw) {
+        localStorage.setItem(STORAGE_KEYS.users, JSON.stringify(DEFAULT_USERS));
+        return [...DEFAULT_USERS];
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) && parsed.length ? parsed : [...DEFAULT_USERS];
+      } catch {
+        return [...DEFAULT_USERS];
+      }
+    }
+
+    function saveUsers(users) {
+      localStorage.setItem(STORAGE_KEYS.users, JSON.stringify(users));
+      renderAccountsTable();
+    }
+
+    function getScriptUrl() {
+      return (localStorage.getItem(STORAGE_KEYS.scriptUrl) || '').trim();
+    }
+
+    function setScriptUrl(url) {
+      localStorage.setItem(STORAGE_KEYS.scriptUrl, (url || '').trim());
+      updateSyncBadge();
+    }
+
+    function loadData() {
+      const raw = localStorage.getItem(STORAGE_KEYS.data);
+      if (!raw) {
+        const fresh = cloneSampleData();
+        localStorage.setItem(STORAGE_KEYS.data, JSON.stringify(fresh));
+        return fresh;
+      }
+      try {
+        return { ...cloneSampleData(), ...JSON.parse(raw) };
+      } catch {
+        return cloneSampleData();
+      }
+    }
+
+    function saveDataLocally() {
+      localStorage.setItem(STORAGE_KEYS.data, JSON.stringify(appData));
+    }
+
+    function showLoginAlert(msg, isError = true) {
+      const el = document.getElementById('loginAlert');
+      el.textContent = msg;
+      el.className = `p-3 rounded-lg text-xs font-medium ${isError ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`;
+      el.classList.remove('hidden');
+    }
+
+    async function authenticateUser(username, password, scriptUrl) {
+      const cleanU = username.trim().toLowerCase();
+      const users = getUsers();
+      const localMatch = users.find(u => u.username.trim().toLowerCase() === cleanU && u.password === password);
+
+      if (scriptUrl) {
+        try {
+          const res = await fetch(scriptUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'login',
+              auth: { username: username.trim(), password }
+            })
+          });
+          const json = await res.json();
+          if (json.status === 'ok' && json.user) {
+            return {
+              ok: true,
+              session: {
+                username: json.user.username,
+                password,
+                namaLengkap: json.user.namaLengkap || json.user.username,
+                role: json.user.role || 'User',
+                loggedInAt: new Date().toISOString()
+              }
+            };
+          }
+          if (localMatch) {
+            return {
+              ok: true,
+              session: {
+                username: localMatch.username,
+                password: localMatch.password,
+                namaLengkap: localMatch.namaLengkap,
+                role: localMatch.role,
+                loggedInAt: new Date().toISOString()
+              }
+            };
+          }
+          return { ok: false, message: json.message || 'Username atau password kustom tidak valid.' };
+        } catch (err) {
+          if (localMatch) {
+            return {
+              ok: true,
+              session: {
+                username: localMatch.username,
+                password: localMatch.password,
+                namaLengkap: localMatch.namaLengkap,
+                role: localMatch.role,
+                loggedInAt: new Date().toISOString()
+              }
+            };
+          }
+          return { ok: false, message: 'Gagal menghubungi Google Sheets. Periksa URL atau gunakan akun lokal.' };
+        }
+      }
+
+      if (localMatch) {
+        return {
+          ok: true,
+          session: {
+            username: localMatch.username,
+            password: localMatch.password,
+            namaLengkap: localMatch.namaLengkap,
+            role: localMatch.role,
+            loggedInAt: new Date().toISOString()
+          }
+        };
+      }
+      return { ok: false, message: 'Username atau password salah. Coba akun admin.env / EcoTrack#2026 atau buat akun kustom.' };
+    }
+
+    function enterApp(session) {
+      currentSession = session;
+      sessionStorage.setItem(STORAGE_KEYS.session, JSON.stringify(session));
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('appScreen').classList.remove('hidden');
+      document.getElementById('currentUserName').textContent = session.namaLengkap;
+      document.getElementById('currentUserRole').textContent = `${session.role} (@${session.username})`;
+      document.getElementById('settingsScriptUrl').value = getScriptUrl();
+      updateSyncBadge();
+      renderAccountsTable();
+      renderAll();
+      if (getScriptUrl()) {
+        syncFromSheets();
+      }
+    }
+
+    function updateSyncBadge() {
+      const badge = document.getElementById('syncStatusBadge');
+      if (!badge) return;
+      badge.textContent = getScriptUrl() ? 'Mode: Terhubung Google Sheets' : 'Mode: Penyimpanan Lokal';
+    }
+
+    function evaluateWaterStatus(ph, tss) {
+      const p = Number(ph);
+      const t = Number(tss);
+      if (p < 6.0 || p > 9.0 || t > 200) return 'Melewati Baku Mutu';
+      if ((p >= 6.0 && p < 6.3) || (p > 8.7 && p <= 9.0) || t >= 170) return 'Mendekati Batas';
+      return 'Normal';
+    }
+
+    function evaluateAirStatus(pm25, pm10, noise) {
+      if (Number(pm25) > 55 || Number(pm10) > 150 || Number(noise) > 70) return 'Melewati Baku Mutu';
+      return 'Normal';
+    }
+
+    function calculateRemainingDays(entryDateStr, maxDays) {
+      const maxD = Number(maxDays) || 90;
+      const cleanDate = formatShortDate(entryDateStr);
+      const parts = cleanDate.split('-');
+      if (parts.length !== 3) return maxD;
+      const start = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      if (isNaN(start.getTime())) return maxD;
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const diffDays = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      return maxD - diffDays;
+    }
+
+    function evaluateB3Status(remainingDays) {
+      if (remainingDays <= 0) return 'Melewati Batas TPS';
+      if (remainingDays <= 30) return 'Waspada (<30 Hari)';
+      return 'Aman';
+    }
+
+    function getB3InventorySummary() {
+      const map = new Map();
+      (appData.b3 || []).forEach(item => {
+        const kode = String(item.kodeLimbah || '-').trim();
+        const jenis = String(item.jenisLimbah || '').trim();
+        const key = `${kode.toLowerCase()}||${jenis.toLowerCase()}`;
+        if (!map.has(key)) {
+          map.set(key, {
+            kodeLimbah: kode,
+            jenisLimbah: jenis || kode,
+            masuk: 0,
+            keluar: 0,
+            sisa: 0,
+            minSisaHari: Infinity
+          });
+        }
+        const rec = map.get(key);
+        const qty = Number(item.jumlah) || 0;
+        const tx = String(item.jenisTransaksi || 'Masuk').toLowerCase();
+        if (tx === 'keluar') {
+          rec.keluar += qty;
+        } else {
+          rec.masuk += qty;
+          const rem = calculateRemainingDays(item.tanggalMasuk, item.batasHari);
+          if (rem < rec.minSisaHari) rec.minSisaHari = rem;
+        }
+        rec.sisa = Math.max(0, Number((rec.masuk - rec.keluar).toFixed(2)));
+      });
+
+      return Array.from(map.values()).map(r => {
+        const effectiveRem = r.minSisaHari === Infinity ? 90 : r.minSisaHari;
+        return {
+          ...r,
+          masuk: Number(r.masuk.toFixed(2)),
+          keluar: Number(r.keluar.toFixed(2)),
+          sisaHari: effectiveRem,
+          statusTps: r.sisa > 0 ? evaluateB3Status(effectiveRem) : 'Stok Kosong (0 Ton)'
+        };
+      });
+    }
+
+    function getChemicalInventorySummary() {
+      const map = new Map();
+      (appData.chemical || []).forEach(item => {
+        const nama = String(item.namaChemical || '-').trim();
+        const satuan = String(item.satuan || 'kg').trim();
+        const key = `${nama.toLowerCase()}||${satuan.toLowerCase()}`;
+        if (!map.has(key)) {
+          map.set(key, {
+            namaChemical: nama,
+            satuan,
+            masuk: 0,
+            keluar: 0,
+            sisa: 0,
+            stokMinimum: Number(item.stokMinimum) > 0 ? Number(item.stokMinimum) : 50
+          });
+        }
+        const rec = map.get(key);
+        const qty = Number(item.jumlah) || 0;
+        const tx = String(item.jenisTransaksi || 'Masuk').toLowerCase();
+        if (Number(item.stokMinimum) > 0) {
+          rec.stokMinimum = Number(item.stokMinimum);
+        }
+        if (tx === 'pemakaian' || tx === 'keluar') {
+          rec.keluar += qty;
+        } else {
+          rec.masuk += qty;
+        }
+        rec.sisa = Math.max(0, Number((rec.masuk - rec.keluar).toFixed(2)));
+      });
+
+      return Array.from(map.values()).map(r => {
+        let status = 'Stok Aman';
+        if (r.sisa <= 0) status = 'Stok Habis';
+        else if (r.sisa <= r.stokMinimum) status = 'Stok Menipis';
+        return {
+          ...r,
+          masuk: Number(r.masuk.toFixed(2)),
+          keluar: Number(r.keluar.toFixed(2)),
+          status
+        };
+      });
+    }
+
+    function evaluateEnergyRecord(tipeUnit, meterAwal, meterAkhir, fuelLiter, batasGenset) {
+      const awal = Number(meterAwal) || 0;
+      const akhir = Number(meterAkhir) || 0;
+      const fuel = Number(fuelLiter) || 0;
+      const selisih = akhir >= awal ? Number((akhir - awal).toFixed(1)) : Number(akhir.toFixed(1));
+
+      if (String(tipeUnit).toLowerCase().includes('genset')) {
+        const maxRate = Number(batasGenset) > 0 ? Number(batasGenset) : 10;
+        const ratePerHour = selisih > 0 && fuel > 0 ? fuel / selisih : 0;
+        const status = ratePerHour > maxRate ? 'Melewati Batas Wajar' : 'Normal';
+        return {
+          selisih,
+          rasioDisplay: selisih > 0 ? `${ratePerHour.toFixed(2)} L/jam` : `${fuel.toFixed(1)} L`,
+          status
+        };
+      }
+
+      const kmPerLiter = fuel > 0 && selisih > 0 ? selisih / fuel : 0;
+      let status = 'Boros (<8 km/L)';
+      if (kmPerLiter >= 10) {
+        status = 'Normal (≥10 km/L)';
+      } else if (kmPerLiter >= 8) {
+        status = 'Wajar Tambang (≥8 km/L)';
+      }
+      return {
+        selisih,
+        rasioDisplay: `${kmPerLiter.toFixed(2)} km/L`,
+        status
+      };
+    }
+
+    function matchPondNumber(titikPantau) {
+      const s = String(titikPantau || '').toLowerCase();
+      if (s.includes('01') || s.includes('sp-1') || s.includes('sp 1') || (/\b1\b/.test(s) && s.includes('pond'))) return 1;
+      if (s.includes('02') || s.includes('sp-2') || s.includes('sp 2') || (/\b2\b/.test(s) && s.includes('pond'))) return 2;
+      if (s.includes('03') || s.includes('sp-3') || s.includes('sp 3') || (/\b3\b/.test(s) && s.includes('pond'))) return 3;
+      if (s.includes('04') || s.includes('sp-4') || s.includes('sp 4') || (/\b4\b/.test(s) && s.includes('pond'))) return 4;
+      if (s.endsWith(' 1') || s.endsWith('-1')) return 1;
+      if (s.endsWith(' 2') || s.endsWith('-2')) return 2;
+      if (s.endsWith(' 3') || s.endsWith('-3')) return 3;
+      if (s.endsWith(' 4') || s.endsWith('-4')) return 4;
+      return null;
+    }
+
+    function badgeHtml(status) {
+      const s = String(status || '').toLowerCase();
+      if (s.includes('melewati') || s.includes('terlambat') || s.includes('tinggi') || s.includes('terbuka') || s.includes('boros') || s.includes('habis')) {
+        return `<span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-semibold">${status}</span>`;
+      }
+      if (s.includes('waspada') || s.includes('mendekati') || s.includes('sedang') || s.includes('proses') || s.includes('penanganan') || s.includes('menipis') || s.includes('keluar') || s.includes('pemakaian')) {
+        return `<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold">${status}</span>`;
+      }
+      if (s.includes('diangkut') || s.includes('kosong')) {
+        return `<span class="px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 font-semibold">${status}</span>`;
+      }
+      return `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold">${status}</span>`;
+    }
+
+    async function pushToSheets(moduleKey, dataObj) {
+      const url = getScriptUrl();
+      if (!url || !currentSession) return;
+      try {
+        await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'save',
+            module: moduleKey,
+            data: dataObj,
+            auth: {
+              username: currentSession.username,
+              password: currentSession.password
+            }
+          })
+        });
+      } catch (err) {
+        console.warn('Gagal mengirim ke Google Sheets:', err);
+      }
+    }
+
+    async function syncFromSheets() {
+      const url = getScriptUrl();
+      const feedback = document.getElementById('sheetsFeedback');
+      if (!url || !currentSession) return;
+      try {
+        const params = new URLSearchParams({
+          action: 'sync',
+          module: 'all',
+          username: currentSession.username,
+          password: currentSession.password
+        });
+        const res = await fetch(`${url}?${params.toString()}`);
+        const json = await res.json();
+        if (json.status === 'ok' && json.data) {
+          if (Array.isArray(json.data.water)) {
+            appData.water = json.data.water.map(r => ({
+              id: r.ID || String(Date.now() + Math.random()),
+              tanggal: formatShortDate(r.Tanggal),
+              titikPantau: r.Titik_Pantau || '',
+              ph: r.pH || '',
+              tss: r.TSS_mgL || '',
+              debit: r.Debit_m3h || '',
+              status: r.Status || evaluateWaterStatus(r.pH, r.TSS_mgL),
+              catatan: r.Catatan || ''
+            }));
+          }
+          if (Array.isArray(json.data.chemical)) {
+            appData.chemical = json.data.chemical.map(r => ({
+              id: r.ID || String(Date.now() + Math.random()),
+              tanggal: formatShortDate(r.Tanggal),
+              jenisTransaksi: r.Jenis_Transaksi || 'Masuk',
+              namaChemical: r.Nama_Chemical || '',
+              jumlah: Number(r.Jumlah) || 0,
+              satuan: r.Satuan || 'kg',
+              lokasiPenggunaan: r.Lokasi_Penggunaan || '',
+              stokMinimum: Number(r.Stok_Minimum) || 50,
+              keterangan: r.Keterangan || ''
+            }));
+          }
+          if (Array.isArray(json.data.air)) {
+            appData.air = json.data.air.map(r => ({
+              id: r.ID || String(Date.now() + Math.random()),
+              tanggal: formatShortDate(r.Tanggal),
+              lokasi: r.Lokasi || '',
+              pm25: r.PM25_ugm3 || '',
+              pm10: r.PM10_ugm3 || '',
+              kebisingan: r.Kebisingan_dBA || '',
+              status: r.Status || evaluateAirStatus(r.PM25_ugm3, r.PM10_ugm3, r.Kebisingan_dBA),
+              catatan: r.Catatan || ''
+            }));
+          }
+          if (Array.isArray(json.data.b3)) {
+            appData.b3 = json.data.b3.map(r => {
+              const tx = r.Jenis_Transaksi || 'Masuk';
+              const tgl = formatShortDate(r.Tanggal_Masuk || r.Tanggal);
+              const batas = Number(r.Batas_Hari_TPS) || 90;
+              const rem = String(tx).toLowerCase() === 'keluar' ? 0 : calculateRemainingDays(tgl, batas);
+              return {
+                id: r.ID || String(Date.now() + Math.random()),
+                tanggalMasuk: tgl,
+                jenisTransaksi: tx,
+                kodeLimbah: r.Kode_Limbah || '',
+                jenisLimbah: r.Jenis_Limbah || '',
+                jumlah: Number(r.Jumlah_Ton) || 0,
+                batasHari: batas,
+                sisaHari: rem,
+                status: String(tx).toLowerCase() === 'keluar' ? 'Diangkut Pihak Ke-3' : evaluateB3Status(rem),
+                tujuan: r.Tujuan_Pihak3 || ''
+              };
+            });
+          }
+          if (Array.isArray(json.data.energy)) {
+            appData.energy = json.data.energy.map(r => {
+              const calc = evaluateEnergyRecord(r.Tipe_Unit, r.Meter_Awal, r.Meter_Akhir, r.Fuel_Liter, r.Batas_Genset_Lph);
+              return {
+                id: r.ID || String(Date.now() + Math.random()),
+                tanggal: formatShortDate(r.Tanggal),
+                tipeUnit: r.Tipe_Unit || 'LV Triton',
+                namaUnit: r.Nama_Unit || '',
+                meterAwal: Number(r.Meter_Awal) || 0,
+                meterAkhir: Number(r.Meter_Akhir) || 0,
+                fuelLiter: Number(r.Fuel_Liter) || 0,
+                selisih: r.Selisih !== '' && r.Selisih !== undefined ? Number(r.Selisih) : calc.selisih,
+                rasioDisplay: r.Rasio_Konsumsi || calc.rasioDisplay,
+                status: r.Status || calc.status,
+                catatan: r.Catatan || ''
+              };
+            });
+          }
+          if (Array.isArray(json.data.compliance)) {
+            appData.compliance = json.data.compliance.map(r => ({
+              id: r.ID || String(Date.now() + Math.random()),
+              namaKewajiban: r.Nama_Kewajiban || '',
+              kategori: r.Kategori || '',
+              jatuhTempo: formatShortDate(r.Jatuh_Tempo),
+              status: r.Status || 'Dalam Proses',
+              pic: r.Penanggung_Jawab || '',
+              catatan: r.Catatan || ''
+            }));
+          }
+          if (Array.isArray(json.data.incident)) {
+            appData.incident = json.data.incident.map(r => ({
+              id: r.ID || String(Date.now() + Math.random()),
+              tanggal: formatShortDate(r.Tanggal),
+              lokasi: r.Lokasi || '',
+              jenisTemuan: r.Jenis_Temuan || '',
+              risiko: r.Tingkat_Risiko || 'Sedang',
+              car: r.Tindakan_CAR || '',
+              status: r.Status || 'Terbuka',
+              pic: r.PIC || ''
+            }));
+          }
+          saveDataLocally();
+          renderAll();
+          if (feedback) feedback.textContent = 'Sinkronisasi berhasil dari Google Sheets.';
+        } else if (feedback) {
+          feedback.textContent = json.message || 'Tidak dapat menarik data dari Sheets.';
+        }
+      } catch (err) {
+        if (feedback) feedback.textContent = 'Mode lokal aktif (belum bisa terhubung ke endpoint Sheets).';
+      }
+    }
+
+    function renderAll() {
+      renderWater();
+      renderChemical();
+      renderAir();
+      renderB3();
+      renderEnergy();
+      renderCompliance();
+      renderIncident();
+      renderDashboardAndAlerts();
+    }
+
+    function renderWater() {
+      const tbody = document.getElementById('waterTableBody');
+      tbody.innerHTML = appData.water.map(item => `
+        <tr>
+          <td class="p-3">${formatShortDate(item.tanggal)}</td>
+          <td class="p-3 font-medium">${item.titikPantau}</td>
+          <td class="p-3">${item.ph}</td>
+          <td class="p-3">${item.tss} mg/L</td>
+          <td class="p-3">${item.debit || '-'}</td>
+          <td class="p-3">${badgeHtml(item.status)}</td>
+          <td class="p-3 text-slate-500">${item.catatan || '-'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderChemical() {
+      const cardsEl = document.getElementById('chemStockCards');
+      const summary = getChemicalInventorySummary();
+
+      if (cardsEl) {
+        cardsEl.innerHTML = summary.length ? summary.map(s => `
+          <div class="rounded-xl border border-slate-200 p-3.5 bg-slate-50/70 space-y-1.5">
+            <div class="flex items-start justify-between gap-2">
+              <div class="font-bold text-xs text-slate-800">${s.namaChemical}</div>
+              ${badgeHtml(s.status)}
+            </div>
+            <div class="text-xl font-extrabold text-slate-900">${s.sisa} <span class="text-xs font-medium text-slate-500">${s.satuan}</span></div>
+            <div class="text-[11px] text-slate-500 flex justify-between pt-1 border-t border-slate-200">
+              <span>Masuk: +${s.masuk}</span>
+              <span>Pakai: -${s.keluar}</span>
+            </div>
+          </div>
+        `).join('') : '<div class="text-xs text-slate-500 col-span-full">Belum ada data inventory chemical.</div>';
+      }
+
+      const tbody = document.getElementById('chemicalTableBody');
+      if (!tbody) return;
+      const list = Array.isArray(appData.chemical) ? appData.chemical : [];
+      tbody.innerHTML = list.map(item => {
+        const isOut = String(item.jenisTransaksi).toLowerCase() === 'pemakaian' || String(item.jenisTransaksi).toLowerCase() === 'keluar';
+        return `
+          <tr>
+            <td class="p-3">${formatShortDate(item.tanggal)}</td>
+            <td class="p-3">${badgeHtml(isOut ? 'Pemakaian (-)' : 'Masuk (+)')}</td>
+            <td class="p-3 font-medium">${item.namaChemical}</td>
+            <td class="p-3 font-semibold ${isOut ? 'text-amber-700' : 'text-emerald-700'}">${isOut ? '-' : '+'}${Number(item.jumlah).toFixed(2)} ${item.satuan}</td>
+            <td class="p-3">${item.lokasiPenggunaan || '-'}</td>
+            <td class="p-3 text-slate-500">${item.keterangan || '-'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderAir() {
+      const tbody = document.getElementById('airTableBody');
+      tbody.innerHTML = appData.air.map(item => `
+        <tr>
+          <td class="p-3">${formatShortDate(item.tanggal)}</td>
+          <td class="p-3 font-medium">${item.lokasi}</td>
+          <td class="p-3">${item.pm25} µg/m³</td>
+          <td class="p-3">${item.pm10} µg/m³</td>
+          <td class="p-3">${item.kebisingan} dBA</td>
+          <td class="p-3">${badgeHtml(item.status)}</td>
+          <td class="p-3 text-slate-500">${item.catatan || '-'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderB3() {
+      const cardsEl = document.getElementById('b3StockCards');
+      const summary = getB3InventorySummary();
+
+      if (cardsEl) {
+        cardsEl.innerHTML = summary.length ? summary.map(s => `
+          <div class="rounded-xl border border-slate-200 p-3.5 bg-slate-50/70 space-y-1.5">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span class="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">${s.kodeLimbah}</span>
+                <span class="text-xs font-bold text-slate-800 ml-1">${s.jenisLimbah}</span>
+              </div>
+              ${badgeHtml(s.statusTps)}
+            </div>
+            <div class="text-xl font-extrabold text-slate-900">${s.sisa.toFixed(2)} <span class="text-xs font-medium text-slate-500">Ton (Sisa TPS)</span></div>
+            <div class="text-[11px] text-slate-500 flex justify-between pt-1 border-t border-slate-200">
+              <span>Masuk: +${s.masuk.toFixed(2)} T</span>
+              <span>Keluar: -${s.keluar.toFixed(2)} T</span>
+              <span>Sisa: ${s.sisa > 0 ? s.sisaHari + ' hari' : '-'}</span>
+            </div>
+          </div>
+        `).join('') : '<div class="text-xs text-slate-500 col-span-full">Belum ada data inventory limbah B3.</div>';
+      }
+
+      const tbody = document.getElementById('b3TableBody');
+      tbody.innerHTML = appData.b3.map(item => {
+        const isOut = String(item.jenisTransaksi || 'Masuk').toLowerCase() === 'keluar';
+        const rem = isOut ? 0 : calculateRemainingDays(item.tanggalMasuk, item.batasHari);
+        const statusLabel = isOut ? 'Diangkut Pihak Ke-3' : evaluateB3Status(rem);
+        return `
+          <tr>
+            <td class="p-3">${formatShortDate(item.tanggalMasuk)}</td>
+            <td class="p-3">${badgeHtml(isOut ? 'Keluar (-)' : 'Masuk (+)')}</td>
+            <td class="p-3 font-mono font-semibold">${item.kodeLimbah}</td>
+            <td class="p-3 font-medium">${item.jenisLimbah}</td>
+            <td class="p-3 font-semibold ${isOut ? 'text-amber-700' : 'text-emerald-700'}">${isOut ? '-' : '+'}${Number(item.jumlah).toFixed(2)}</td>
+            <td class="p-3 font-semibold">${isOut ? '-' : rem + ' hari'}</td>
+            <td class="p-3">${badgeHtml(statusLabel)}</td>
+            <td class="p-3 text-slate-500">${item.tujuan || '-'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderEnergy() {
+      const tbody = document.getElementById('energyTableBody');
+      if (!tbody) return;
+      const list = Array.isArray(appData.energy) ? appData.energy : [];
+      tbody.innerHTML = list.map(item => {
+        const unitLabel = String(item.tipeUnit).toLowerCase().includes('genset') ? `${item.selisih} jam` : `${item.selisih} km`;
+        return `
+          <tr>
+            <td class="p-3">${formatShortDate(item.tanggal)}</td>
+            <td class="p-3">${item.tipeUnit}</td>
+            <td class="p-3 font-medium">${item.namaUnit}</td>
+            <td class="p-3">${unitLabel}</td>
+            <td class="p-3 font-semibold">${Number(item.fuelLiter).toFixed(1)} L</td>
+            <td class="p-3 font-mono">${item.rasioDisplay}</td>
+            <td class="p-3">${badgeHtml(item.status)}</td>
+            <td class="p-3 text-slate-500">${item.catatan || '-'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderCompliance() {
+      const tbody = document.getElementById('complianceTableBody');
+      tbody.innerHTML = appData.compliance.map(item => `
+        <tr>
+          <td class="p-3 font-medium">${item.namaKewajiban}</td>
+          <td class="p-3">${item.kategori}</td>
+          <td class="p-3">${formatShortDate(item.jatuhTempo)}</td>
+          <td class="p-3">${badgeHtml(item.status)}</td>
+          <td class="p-3">${item.pic || '-'}</td>
+          <td class="p-3 text-slate-500">${item.catatan || '-'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderIncident() {
+      const tbody = document.getElementById('incidentTableBody');
+      tbody.innerHTML = appData.incident.map(item => `
+        <tr>
+          <td class="p-3">${formatShortDate(item.tanggal)}</td>
+          <td class="p-3 font-medium">${item.lokasi}</td>
+          <td class="p-3">${item.jenisTemuan}</td>
+          <td class="p-3">${badgeHtml(item.risiko)}</td>
+          <td class="p-3">${item.car}</td>
+          <td class="p-3">${badgeHtml(item.status)}</td>
+          <td class="p-3">${item.pic || '-'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderDashboardAndAlerts() {
+      const alerts = [];
+
+      const waterExceed = appData.water.filter(w => String(w.status).includes('Melewati') || String(w.status).includes('Mendekati'));
+      waterExceed.forEach(w => alerts.push(`Kualitas Air (${w.titikPantau}, ${formatShortDate(w.tanggal)}): pH ${w.ph}, TSS ${w.tss} mg/L — ${w.status}`));
+
+      const chemSummary = getChemicalInventorySummary();
+      const chemWarn = chemSummary.filter(c => c.status !== 'Stok Aman');
+      chemWarn.forEach(c => alerts.push(`Chemical Pond (${c.namaChemical}): sisa ${c.sisa} ${c.satuan} (${c.status})`));
+
+      const airExceed = appData.air.filter(a => String(a.status).includes('Melewati'));
+      airExceed.forEach(a => alerts.push(`Udara/Kebisingan (${a.lokasi}, ${formatShortDate(a.tanggal)}): ${a.status}`));
+
+      const b3Summary = getB3InventorySummary();
+      const b3Warn = b3Summary.filter(b => b.sisa > 0 && (b.sisaHari <= 30 || b.statusTps.includes('Waspada') || b.statusTps.includes('Melewati')));
+      b3Warn.forEach(b => alerts.push(`Limbah B3 (${b.kodeLimbah} - ${b.jenisLimbah}): sisa stok ${b.sisa} Ton, sisa masa simpan ${b.sisaHari} hari (${b.statusTps})`));
+
+      const energyList = Array.isArray(appData.energy) ? appData.energy : [];
+      const energyWarn = energyList.filter(e => {
+        const st = String(e.status || '').toLowerCase();
+        return st.includes('boros') || st.includes('melewati');
+      });
+      energyWarn.forEach(e => alerts.push(`Fuel ${e.tipeUnit} (${e.namaUnit}, ${formatShortDate(e.tanggal)}): ${e.rasioDisplay} — ${e.status}`));
+
+      const banner = document.getElementById('alertBanner');
+      const alertList = document.getElementById('alertList');
+      if (alerts.length) {
+        banner.classList.remove('hidden');
+        alertList.innerHTML = alerts.map(a => `<li>${a}</li>`).join('');
+      } else {
+        banner.classList.add('hidden');
+      }
+
+      document.getElementById('kpiWaterCount').textContent = appData.water.length;
+      document.getElementById('kpiWaterAlert').textContent = waterExceed.length ? `${waterExceed.length} catatan perlu perhatian` : 'Semua memenuhi baku mutu';
+      document.getElementById('kpiWaterAlert').className = `text-xs mt-1 ${waterExceed.length ? 'text-rose-600 font-semibold' : 'text-emerald-600'}`;
+
+      document.getElementById('kpiChemCount').textContent = chemSummary.length;
+      document.getElementById('kpiChemAlert').textContent = chemWarn.length ? `${chemWarn.length} chemical menipis/habis` : 'Stok chemical aman';
+      document.getElementById('kpiChemAlert').className = `text-xs mt-1 ${chemWarn.length ? 'text-rose-600 font-semibold' : 'text-emerald-600'}`;
+
+      document.getElementById('kpiAirCount').textContent = appData.air.length;
+      document.getElementById('kpiAirAlert').textContent = airExceed.length ? `${airExceed.length} melebihi baku mutu` : 'Parameter terkendali';
+
+      const totalSisaB3 = b3Summary.reduce((acc, item) => acc + item.sisa, 0);
+      document.getElementById('kpiB3Ton').textContent = totalSisaB3.toFixed(2);
+      document.getElementById('kpiB3Alert').textContent = b3Warn.length ? `${b3Warn.length} jenis mendekati batas` : 'Masa simpan aman';
+
+      const totalFuel = energyList.reduce((acc, item) => acc + (Number(item.fuelLiter) || 0), 0);
+      document.getElementById('kpiFuelLiter').textContent = totalFuel.toFixed(1);
+      document.getElementById('kpiFuelAlert').textContent = energyWarn.length ? `${energyWarn.length} unit perlu evaluasi fuel` : 'LV Triton ≥ 8 km/L wajar';
+      document.getElementById('kpiFuelAlert').className = `text-xs mt-1 ${energyWarn.length ? 'text-rose-600 font-semibold' : 'text-emerald-600'}`;
+
+      const openIncidents = appData.incident.filter(i => String(i.status).toLowerCase() !== 'selesai').length;
+      document.getElementById('kpiIncidentOpen').textContent = openIncidents;
+      document.getElementById('kpiComplianceInfo').textContent = `${appData.compliance.length} kewajiban regulasi`;
+
+      updateCharts(b3Summary, chemSummary);
+    }
+
+    function updateCharts(b3Summary, chemSummary) {
+      for (let pondNum = 1; pondNum <= 4; pondNum++) {
+        const canvas = document.getElementById(`pondChart${pondNum}`);
+        const metaEl = document.getElementById(`spMeta-${pondNum}`);
+        if (!canvas) continue;
+
+        const rows = appData.water.filter(w => matchPondNumber(w.titikPantau) === pondNum).slice(-8);
+        if (metaEl) {
+          metaEl.textContent = rows.length ? `${rows.length} log terbaru` : 'Belum ada data';
+        }
+
+        const labels = rows.map(r => formatShortDate(r.tanggal));
+        const tssVals = rows.map(r => Number(r.tss) || 0);
+        const phVals = rows.map(r => Number(r.ph) || 0);
+
+        if (pondChartInstances[pondNum]) {
+          pondChartInstances[pondNum].destroy();
+        }
+
+        pondChartInstances[pondNum] = new Chart(canvas.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: labels.length ? labels : ['Belum ada data'],
+            datasets: [
+              {
+                label: 'TSS (mg/L)',
+                data: labels.length ? tssVals : [0],
+                borderColor: '#0f766e',
+                backgroundColor: 'rgba(15, 118, 110, 0.14)',
+                borderWidth: 2,
+                pointRadius: 3.5,
+                tension: 0.3,
+                fill: true
+              },
+              {
+                label: 'pH',
+                data: labels.length ? phVals : [0],
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                borderWidth: 2,
+                pointRadius: 3.5,
+                tension: 0.3
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+            },
+            scales: {
+              x: { ticks: { font: { size: 10 }, maxRotation: 25, autoSkip: true } },
+              y: { beginAtZero: true, ticks: { font: { size: 10 } } }
+            }
+          }
+        });
+      }
+
+      const bCtx = document.getElementById('b3Chart').getContext('2d');
+      const b3Labels = b3Summary.map(b => `${b.kodeLimbah} — ${b.jenisLimbah}`);
+      const b3Sisa = b3Summary.map(b => b.sisa);
+
+      if (b3ChartInstance) b3ChartInstance.destroy();
+      b3ChartInstance = new Chart(bCtx, {
+        type: 'bar',
+        data: {
+          labels: b3Labels.length ? b3Labels : ['Belum ada data'],
+          datasets: [{
+            label: 'Sisa Stok TPS (Ton)',
+            data: b3Sisa.length ? b3Sisa : [0],
+            backgroundColor: '#059669',
+            borderRadius: 6,
+            maxBarThickness: 48
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+          },
+          scales: {
+            x: { ticks: { font: { size: 10 }, maxRotation: 20, autoSkip: false } },
+            y: { beginAtZero: true, ticks: { font: { size: 10 } } }
+          }
+        }
+      });
+
+      const cCtx = document.getElementById('chemChart').getContext('2d');
+      const cLabels = chemSummary.map(c => `${c.namaChemical} (${c.satuan})`);
+      const cSisa = chemSummary.map(c => c.sisa);
+
+      if (chemChartInstance) chemChartInstance.destroy();
+      chemChartInstance = new Chart(cCtx, {
+        type: 'bar',
+        data: {
+          labels: cLabels.length ? cLabels : ['Belum ada data'],
+          datasets: [{
+            label: 'Sisa Stok Gudang',
+            data: cSisa.length ? cSisa : [0],
+            backgroundColor: '#0891b2',
+            borderRadius: 6,
+            maxBarThickness: 48
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+          },
+          scales: {
+            x: { ticks: { font: { size: 10 }, maxRotation: 20, autoSkip: false } },
+            y: { beginAtZero: true, ticks: { font: { size: 10 } } }
+          }
+        }
+      });
+
+      const eCtx = document.getElementById('energyChart').getContext('2d');
+      const energyList = Array.isArray(appData.energy) ? appData.energy : [];
+      let totalLvFuel = 0;
+      let totalGensetFuel = 0;
+
+      energyList.forEach(item => {
+        const liter = Number(item.fuelLiter) || 0;
+        if (String(item.tipeUnit).toLowerCase().includes('genset')) {
+          totalGensetFuel += liter;
+        } else {
+          totalLvFuel += liter;
+        }
+      });
+
+      if (energyChartInstance) energyChartInstance.destroy();
+      energyChartInstance = new Chart(eCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Light Vehicle (LV)', 'Genset'],
+          datasets: [{
+            label: 'Total Pemakaian Fuel (Liter)',
+            data: [Number(totalLvFuel.toFixed(1)), Number(totalGensetFuel.toFixed(1))],
+            backgroundColor: ['#0284c7', '#d97706'],
+            borderRadius: 6,
+            maxBarThickness: 64
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+          },
+          scales: {
+            x: { ticks: { font: { size: 11 } } },
+            y: { beginAtZero: true, ticks: { font: { size: 10 } } }
+          }
+        }
+      });
+    }
+
+    function renderAccountsTable() {
+      const tbody = document.getElementById('accountsTableBody');
+      if (!tbody) return;
+      const users = getUsers();
+      tbody.innerHTML = users.map(u => `
+        <tr>
+          <td class="p-3 font-mono font-medium">${u.username}</td>
+          <td class="p-3">${u.namaLengkap}</td>
+          <td class="p-3">${u.role}</td>
+          <td class="p-3 font-mono text-slate-500">${u.password}</td>
+        </tr>
+      `).join('');
+    }
+
+    const b3KodeSelect = document.getElementById('b3KodeSelect');
+    const b3JenisInput = document.getElementById('b3JenisInput');
+    b3KodeSelect.addEventListener('change', () => {
+      const chosen = b3KodeSelect.value;
+      if (chosen && B3_CODE_SUGGESTIONS[chosen] && !b3JenisInput.value.trim()) {
+        b3JenisInput.value = B3_CODE_SUGGESTIONS[chosen];
+      }
+    });
+
+    const energyUnitTypeSelect = document.getElementById('energyUnitType');
+    const meterAwalInput = document.getElementById('meterAwalInput');
+    const meterAkhirInput = document.getElementById('meterAkhirInput');
+    const batasGensetInput = document.getElementById('batasGensetInput');
+    const catatanEnergyInput = document.getElementById('catatanEnergyInput');
+
+    function syncEnergyFormFields() {
+      const isGenset = energyUnitTypeSelect.value === 'Genset';
+      meterAwalInput.placeholder = isGenset ? 'HM Awal (jam)' : 'Odometer Awal (km)';
+      meterAkhirInput.placeholder = isGenset ? 'HM Akhir (jam)' : 'Odometer Akhir (km)';
+      batasGensetInput.classList.toggle('hidden', !isGenset);
+      catatanEnergyInput.className = isGenset
+        ? 'sm:col-span-2 lg:col-span-4 px-3 py-2 border rounded-lg text-sm'
+        : 'sm:col-span-2 lg:col-span-5 px-3 py-2 border rounded-lg text-sm';
+    }
+    energyUnitTypeSelect.addEventListener('change', syncEnergyFormFields);
+    syncEnergyFormFields();
+
+    const chemTxSelect = document.getElementById('chemTxType');
+    const chemLokasiSelect = document.getElementById('chemLokasiInput');
+    chemTxSelect.addEventListener('change', () => {
+      chemLokasiSelect.value = chemTxSelect.value === 'Pemakaian' ? 'Settling Pond 01' : 'Gudang Chemical HSEC';
+    });
+
+    document.getElementById('togglePassBtn').addEventListener('click', () => {
+      const input = document.getElementById('loginPassword');
+      const btn = document.getElementById('togglePassBtn');
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = 'Sembunyi';
+      } else {
+        input.type = 'password';
+        btn.textContent = 'Lihat';
+      }
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+      const urlInput = document.getElementById('loginScriptUrl').value.trim();
+      if (urlInput) setScriptUrl(urlInput);
+
+      const auth = await authenticateUser(username, password, getScriptUrl());
+      if (!auth.ok) {
+        showLoginAlert(auth.message, true);
+        return;
+      }
+      enterApp(auth.session);
+    });
+
+    const accountModal = document.getElementById('customAccountModal');
+    const openModal = () => accountModal.classList.remove('hidden');
+    const closeModal = () => accountModal.classList.add('hidden');
+    document.getElementById('openCustomAccountModal').addEventListener('click', openModal);
+    document.getElementById('openAccountModalFromApp').addEventListener('click', openModal);
+    document.getElementById('closeCustomAccountModal').addEventListener('click', closeModal);
+    document.getElementById('cancelCustomAccountBtn').addEventListener('click', closeModal);
+
+    document.getElementById('customAccountForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const namaLengkap = document.getElementById('accNama').value.trim();
+      const username = document.getElementById('accUsername').value.trim();
+      const password = document.getElementById('accPassword').value;
+      const role = document.getElementById('accRole').value;
+
+      const users = getUsers();
+      const idx = users.findIndex(u => u.username.toLowerCase() === username.toLowerCase());
+      const newAccount = { username, password, namaLengkap, role };
+      if (idx >= 0) {
+        users[idx] = newAccount;
+      } else {
+        users.push(newAccount);
+      }
+      saveUsers(users);
+
+      const url = getScriptUrl();
+      if (url && currentSession) {
+        try {
+          await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'register_user',
+              newUser: newAccount,
+              auth: { username: currentSession.username, password: currentSession.password }
+            })
+          });
+        } catch {}
+      }
+
+      e.target.reset();
+      closeModal();
+      showLoginAlert(`Akun kustom "${username}" berhasil disimpan!`, false);
+    });
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.tab;
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('bg-emerald-600', 'text-white', 'font-medium'));
+        btn.classList.add('bg-emerald-600', 'text-white', 'font-medium');
+        document.querySelectorAll('.tab-content').forEach(sec => sec.classList.add('hidden'));
+        const activeSec = document.getElementById(`tab-${target}`);
+        activeSec.classList.remove('hidden');
+        if (target === 'dashboard') {
+          renderDashboardAndAlerts();
+        }
+      });
+    });
+
+    document.getElementById('waterForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const item = {
+        id: 'W-' + Date.now(),
+        tanggal: formatShortDate(fd.get('tanggal')),
+        titikPantau: fd.get('titikPantau'),
+        ph: Number(fd.get('ph')),
+        tss: Number(fd.get('tss')),
+        debit: fd.get('debit') ? Number(fd.get('debit')) : '',
+        status: evaluateWaterStatus(fd.get('ph'), fd.get('tss')),
+        catatan: fd.get('catatan') || ''
+      };
+      appData.water.push(item);
+      saveDataLocally();
+      renderAll();
+      await pushToSheets('water', item);
+      e.target.reset();
+    });
+
+    document.getElementById('chemicalForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const jenisTransaksi = fd.get('jenisTransaksi');
+      const namaChemical = fd.get('namaChemical').trim();
+      const jumlah = Number(fd.get('jumlah'));
+      const satuan = fd.get('satuan');
+
+      if (jenisTransaksi === 'Pemakaian') {
+        const summary = getChemicalInventorySummary();
+        const found = summary.find(
+          s => s.namaChemical.toLowerCase() === namaChemical.toLowerCase() && s.satuan.toLowerCase() === satuan.toLowerCase()
+        );
+        const stokSaatIni = found ? found.sisa : 0;
+        if (jumlah > stokSaatIni) {
+          alert(`Stok "${namaChemical}" tidak mencukupi! Sisa stok saat ini: ${stokSaatIni} ${satuan}.`);
+          return;
+        }
+      }
+
+      const item = {
+        id: 'CH-' + Date.now(),
+        tanggal: formatShortDate(fd.get('tanggal')),
+        jenisTransaksi,
+        namaChemical,
+        jumlah,
+        satuan,
+        lokasiPenggunaan: fd.get('lokasiPenggunaan'),
+        stokMinimum: fd.get('stokMinimum') ? Number(fd.get('stokMinimum')) : 50,
+        keterangan: fd.get('keterangan') || ''
+      };
+
+      if (!Array.isArray(appData.chemical)) appData.chemical = [];
+      appData.chemical.push(item);
+      saveDataLocally();
+      renderAll();
+      await pushToSheets('chemical', item);
+      e.target.reset();
+      chemLokasiSelect.value = 'Gudang Chemical HSEC';
+    });
+
+    document.getElementById('airForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const item = {
+        id: 'A-' + Date.now(),
+        tanggal: formatShortDate(fd.get('tanggal')),
+        lokasi: fd.get('lokasi'),
+        pm25: Number(fd.get('pm25')),
+        pm10: Number(fd.get('pm10')),
+        kebisingan: Number(fd.get('kebisingan')),
+        status: evaluateAirStatus(fd.get('pm25'), fd.get('pm10'), fd.get('kebisingan')),
+        catatan: fd.get('catatan') || ''
+      };
+      appData.air.push(item);
+      saveDataLocally();
+      renderAll();
+      await pushToSheets('air', item);
+      e.target.reset();
+    });
+
+    document.getElementById('b3Form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const jenisTransaksi = fd.get('jenisTransaksi');
+      const kodeLimbah = fd.get('kodeLimbah').trim();
+      const jenisLimbah = fd.get('jenisLimbah').trim();
+      const jumlah = Number(fd.get('jumlah'));
+      const batasHari = Number(fd.get('batasHari')) || 90;
+
+      if (jenisTransaksi === 'Keluar') {
+        const summary = getB3InventorySummary();
+        const found = summary.find(
+          s => s.kodeLimbah.toLowerCase() === kodeLimbah.toLowerCase() && s.jenisLimbah.toLowerCase() === jenisLimbah.toLowerCase()
+        );
+        const sisaTps = found ? found.sisa : 0;
+        if (jumlah > sisaTps) {
+          alert(`Sisa stok TPS untuk "${kodeLimbah} - ${jenisLimbah}" tidak mencukupi! Sisa saat ini: ${sisaTps.toFixed(2)} Ton.`);
+          return;
+        }
+      }
+
+      const sisaHari = jenisTransaksi === 'Keluar' ? 0 : calculateRemainingDays(fd.get('tanggalMasuk'), batasHari);
+      const item = {
+        id: 'B-' + Date.now(),
+        tanggalMasuk: formatShortDate(fd.get('tanggalMasuk')),
+        jenisTransaksi,
+        kodeLimbah,
+        jenisLimbah,
+        jumlah,
+        batasHari,
+        sisaHari,
+        status: jenisTransaksi === 'Keluar' ? 'Diangkut Pihak Ke-3' : evaluateB3Status(sisaHari),
+        tujuan: fd.get('tujuan') || ''
+      };
+      appData.b3.push(item);
+      saveDataLocally();
+      renderAll();
+      await pushToSheets('b3', item);
+      e.target.reset();
+    });
+
+    document.getElementById('energyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const tipeUnit = fd.get('tipeUnit');
+      const meterAwal = Number(fd.get('meterAwal'));
+      const meterAkhir = Number(fd.get('meterAkhir'));
+      const fuelLiter = Number(fd.get('fuelLiter'));
+      const batasGenset = fd.get('batasGenset') ? Number(fd.get('batasGenset')) : 10;
+      const calc = evaluateEnergyRecord(tipeUnit, meterAwal, meterAkhir, fuelLiter, batasGenset);
+
+      const item = {
+        id: 'E-' + Date.now(),
+        tanggal: formatShortDate(fd.get('tanggal')),
+        tipeUnit,
+        namaUnit: fd.get('namaUnit'),
+        meterAwal,
+        meterAkhir,
+        fuelLiter,
+        selisih: calc.selisih,
+        rasioDisplay: calc.rasioDisplay,
+        status: calc.status,
+        catatan: fd.get('catatan') || ''
+      };
+
+      if (!Array.isArray(appData.energy)) appData.energy = [];
+      appData.energy.push(item);
+      saveDataLocally();
+      renderAll();
+      await pushToSheets('energy', { ...item, batasGenset });
+      e.target.reset();
+      syncEnergyFormFields();
+    });
+
+    document.getElementById('complianceForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const item = {
+        id: 'C-' + Date.now(),
+        namaKewajiban: fd.get('namaKewajiban'),
+        kategori: fd.get('kategori'),
+        jatuhTempo: formatShortDate(fd.get('jatuhTempo')),
+        status: fd.get('status'),
+        pic: fd.get('pic') || '',
+        catatan: fd.get('catatan') || ''
+      };
+      appData.compliance.push(item);
+      saveDataLocally();
+      renderAll();
+      await pushToSheets('compliance', item);
+      e.target.reset();
+    });
+
+    document.getElementById('incidentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const item = {
+        id: 'I-' + Date.now(),
+        tanggal: formatShortDate(fd.get('tanggal')),
+        lokasi: fd.get('lokasi'),
+        jenisTemuan: fd.get('jenisTemuan'),
+        risiko: fd.get('risiko'),
+        car: fd.get('car'),
+        status: fd.get('status'),
+        pic: fd.get('pic') || ''
+      };
+      appData.incident.push(item);
+      saveDataLocally();
+      renderAll();
+      await pushToSheets('incident', item);
+      e.target.reset();
+    });
+
+    document.getElementById('saveScriptUrlBtn').addEventListener('click', () => {
+      const val = document.getElementById('settingsScriptUrl').value.trim();
+      setScriptUrl(val);
+      document.getElementById('sheetsFeedback').textContent = 'URL tersimpan. Mencoba sinkronisasi data...';
+      syncFromSheets();
+    });
+
+    document.getElementById('syncNowBtn').addEventListener('click', syncFromSheets);
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      sessionStorage.removeItem(STORAGE_KEYS.session);
+      currentSession = null;
+      document.getElementById('appScreen').classList.add('hidden');
+      document.getElementById('loginScreen').classList.remove('hidden');
+    });
+
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+      const rows = [['Modul', 'Tanggal/JatuhTempo', 'Lokasi/Judul', 'Status', 'Detail']];
+      appData.water.forEach(w => rows.push(['Kualitas Air', formatShortDate(w.tanggal), w.titikPantau, w.status, `pH=${w.ph};TSS=${w.tss}`]));
+      (appData.chemical || []).forEach(ch => rows.push(['Chemical Pond', formatShortDate(ch.tanggal), ch.namaChemical, ch.jenisTransaksi, `${ch.jumlah} ${ch.satuan};${ch.lokasiPenggunaan}`]));
+      appData.air.forEach(a => rows.push(['Udara & Kebisingan', formatShortDate(a.tanggal), a.lokasi, a.status, `PM2.5=${a.pm25};dBA=${a.kebisingan}`]));
+      appData.b3.forEach(b => rows.push(['Limbah B3', formatShortDate(b.tanggalMasuk), `${b.kodeLimbah} - ${b.jenisLimbah}`, b.jenisTransaksi || 'Masuk', `Ton=${b.jumlah};Tujuan=${b.tujuan}`]));
+      (appData.energy || []).forEach(e => rows.push(['Energi & Fuel', formatShortDate(e.tanggal), `${e.tipeUnit} - ${e.namaUnit}`, e.status, `Fuel=${e.fuelLiter}L;Rasio=${e.rasioDisplay}`]));
+      appData.compliance.forEach(c => rows.push(['Kepatuhan', formatShortDate(c.jatuhTempo), c.namaKewajiban, c.status, c.kategori]));
+      appData.incident.forEach(i => rows.push(['Insiden CAR', formatShortDate(i.tanggal), i.lokasi, i.status, i.car]));
+
+      const csvContent = rows.map(r => r.map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `EcoTrack_EMS_Rekap_${new Date().toISOString().slice(0, 10)}.csv`;
+      link.click();
+    });
+
+    const savedSession = sessionStorage.getItem(STORAGE_KEYS.session);
+    if (savedSession) {
+      try {
+        enterApp(JSON.parse(savedSession));
+      } catch {}
+    }
+  </script>
+</body>
+</html>
